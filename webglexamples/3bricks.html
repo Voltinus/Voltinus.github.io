@@ -16,6 +16,9 @@
 		}
 
 		function draw() {
+			ambientLight(255, 255, 255);
+			sphere(5);
+
 			background(0);
 			texture(img.brick);
 
@@ -33,9 +36,6 @@
 			box(50); pop();
 			push(); translate(0, x*radius, y*radius);
 			box(50); pop();
-
-			ambientLight(255, 255, 255);
-			sphere(5);
 		}
 	</script>
 </html>
