@@ -1,13 +1,13 @@
 <html>
 	<head>
 		<meta charset="utf-8"/>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+		<script src="p5.min.js"></script>
 	</head>
 	<script>
 		let img = {};
 
 		function preload() {
-			img.brick = loadImage("brick.png");
+			img.brick = loadImage("./brick.png");
 		}
 
 		function setup() {
@@ -33,6 +33,9 @@
 			box(50); pop();
 			push(); translate(0, x*radius, y*radius);
 			box(50); pop();
+
+			ambientLight(255, 255, 255);
+			sphere(5);
 		}
 	</script>
 </html>
