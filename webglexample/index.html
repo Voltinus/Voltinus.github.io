@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+	</head>
+	<script>
+		let img = {};
+
+		function preload() {
+			img.brick = loadImage("brick.png");
+		}
+
+		function setup() {
+			createCanvas(400, 300, WEBGL);
+			noStroke();
+		}
+
+		function draw() {
+			background(0);
+			texture(img.brick);
+
+			ambientLight(30, 30, 30);
+			pointLight(255, 255, 255, 0, 0, 0);
+
+			let time = (new Date().getSeconds()%2)*1000 + new Date().getMilliseconds(),
+				x = Math.sin(time/2000 * 2*Math.PI),
+				y = Math.cos(time/2000 * 2*Math.PI),
+				radius = 70;
+
+			push(); translate(x*radius, y*radius, 0);
+			box(50); pop();
+			push(); translate(-x*radius, 0, -y*radius);
+			box(50); pop();
+			push(); translate(0, x*radius, y*radius);
+			box(50); pop();
+		}
+	</script>
+</html>
