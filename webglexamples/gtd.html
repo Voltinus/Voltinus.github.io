@@ -1,0 +1,114 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<script src="p5.min.js"></script>
+	</head>
+	<script>
+		let img = {};
+        let player = {
+            x: 0, y: 0,
+            speed: 3, 
+            dx: 0, dy: 0
+        };
+
+        let obj = [];
+
+		function preload() {
+			img.brick = loadImage("./brick.png");
+		}
+
+        function loadObjs() {
+            for(let i=0; i<7; i++) {
+                for(let j=0; j<7; j++) {
+                    if((i==0 || i==6) && (j==0 || j==6)) {
+                        obj.push({
+                            type: "box",
+                            x: i*50 - 150, y: j*50 - 150, z: 25,
+                            size: 50, texture: "brick"
+                        });
+                    }
+                }
+            }
+        }
+
+		function setup() {
+			createCanvas(400, 300, WEBGL);
+			noStroke();
+            loadObjs();
+		}
+
+        function collisionBox(dx, dy, x, y, size) {
+            return !(dx < x-size/2 || dx > x+size/2 ||
+                     dy < y-size/2 || dy > y+size/2);
+        }
+
+		function draw() {
+			background(0);
+			texture(img.brick);
+
+            let [ nextX, nextY ] = [ player.x, player.y ];
+
+            if(keyIsDown("W".charCodeAt(0)) && !keyIsDown("S".charCodeAt(0))) nextY -= player.speed;
+            if(keyIsDown("S".charCodeAt(0)) && !keyIsDown("W".charCodeAt(0))) nextY += player.speed;
+            if(keyIsDown("A".charCodeAt(0)) && !keyIsDown("D".charCodeAt(0))) nextX -= player.speed;
+            if(keyIsDown("D".charCodeAt(0)) && !keyIsDown("A".charCodeAt(0))) nextX += player.speed;
+            
+            let [ collisionX, collisionY ] = [ false, false ];
+
+            // collision
+            for(i in obj) {
+                if(!collisionX) {
+                    collisionX = collisionBox(
+                        nextX, player.y,
+                        obj[i].x, obj[i].y,
+                        obj[i].size
+                    )
+                }
+                if(!collisionY) {
+                    collisionY = collisionBox(
+                        player.x, nextY,
+                        obj[i].x, obj[i].y,
+                        obj[i].size
+                    )
+                }
+            }
+
+            if(!collisionX) player.x = nextX;
+            if(!collisionY) player.y = nextY;
+
+            translate(-player.x, -player.y, 0);
+
+			ambientLight(0, 10, 0);
+            pointLight(255, 255, 255, 0, 0, 20);
+
+            push();
+            translate(-100, -100, 0);
+            for(let i=0; i<5; i++) {
+                for(let j=0; j<5; j++) {
+        			plane(50);
+                    translate(50, 0, 0);
+                }
+                translate(-250, 50, 0);
+            }
+            pop();
+
+            for(i in obj) {
+                push();
+                translate(obj[i].x, obj[i].y, obj[i].z);
+                switch(obj[i].type) {
+                    case "box":
+                        box(obj[i].size);
+                        break;
+                }
+                pop();
+            }
+
+			ambientLight(255, 255, 255);
+			texture(null);
+            translate(player.x, player.y, 20);
+			sphere(5);
+
+            camera(0, 200, 100, 0, 0, 0, 0, 1, 0);
+		}
+	</script>
+</html>
