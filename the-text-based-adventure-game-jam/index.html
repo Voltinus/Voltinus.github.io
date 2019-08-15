@@ -1,0 +1,280 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+            * { font-family: "Lucida Console", Monaco, monospace }
+            
+            body  {
+                margin: auto;
+                overflow: hidden;
+                background: #070707;
+                color: #eee;
+            }
+
+            #game {
+                margin: auto;
+                margin-top: 100px;
+                width: 600px;
+                height: 400px;
+            }
+            
+            #input {
+                width: 100%;
+                height: 40px;
+                background: #111;
+                color: #eee;
+                border: 0;
+                padding-left: 10px;
+            }
+            
+            #output {
+                width: 100%;
+                height: 360px;
+                overflow: auto;
+            }
+            
+            @media (min-width:320px)  { /* smartphones, iPhone, portrait 480x320 phones */ }
+            @media (min-width:481px)  { /* portrait e-readers (Nook/Kindle), smaller tablets @ 600 or @ 640 wide. */ }
+            @media (min-width:641px)  { /* portrait tablets, portrait iPad, landscape e-readers, landscape 800x480 or 854x480 phones */ }
+            @media (min-width:961px)  { /* tablet, landscape iPad, lo-res laptops ands desktops */ }
+            @media (min-width:1025px) { /* big landscape tablets, laptops, and desktops */ }
+            @media (min-width:1281px) { /* hi-res laptops and desktops */ }
+        </style>
+    </head>
+    <body>
+
+        <div id="game">
+            <div id="output"></div>
+            <input id="input" type="text"/>
+        </div>
+
+        <script>
+
+            /// Input and output
+            
+            let output = {
+                element: document.getElementById("output"),
+                print: function(color, content) {
+                    if(content == undefined) {
+                        content = color;
+                        color = undefined;
+                    }
+                    let elem = document.createElement("div");
+                    if(color) {
+                        elem.style.color = color;
+                    }
+                    elem.innerHTML = content;
+                    this.element.appendChild(elem);
+                    elem.scrollIntoView();
+                },
+                color: (c, text) =>
+                    "<span style='color: " + c + "'>" + text + "</span"
+            };
+
+            let input = {
+                element: document.getElementById("input"),
+                get: () => input.element.value,
+                clear: () => input.element.value = ""
+            };
+            input.clear();
+
+            output.element.addEventListener("click", () => {
+                input.element.focus();
+            });
+
+            input.element.addEventListener("change", () => {
+                let command = input.get();
+                input.clear()
+                output.print(`<b>${player.name}</b>: ` + command);
+                commands.exec(command);
+            });
+
+            let hotkeyMode = false;
+
+            input.element.addEventListener("keydown", (e) => {
+                if(e.key == "Tab") {
+                    e.preventDefault();
+                    hotkeyMode = !hotkeyMode;
+                    if(hotkeyMode) {
+                        input.element.value = "HOTKEY MODE";
+                    } else {
+                        input.clear();
+                    }
+                }
+
+                if(hotkeyMode) {
+                    input.element.value = "HOTKEY MODE: ";
+                    commands.exec(e.key);
+                }
+            });
+
+            input.element.addEventListener("keyup", (e) => {
+                if(hotkeyMode) {
+                    input.element.value = "HOTKEY MODE";
+                    if(e.key != "Tab") input.element.value += ": " + e.key;
+                }
+            });
+
+
+            /// Globals
+
+            let player = {
+                name: null,
+                position: "start"
+            };
+
+            let commands    = {
+                exec: (command) => {
+                    if(command == "Tab") return;
+
+                    let toPrint = "", direction = null;
+                    command = command.split(" ");
+                    
+                    switch(command[0]) {
+                        case "?":
+                        case "h":
+                        case "help":
+                            if(command.length == 1) {
+                                output.print("Type <i>help &lt;number&gt;</i> for more info on particular category<br/>&nbsp;");
+                                output.print("1. Movement");
+                                output.print("2. Rooms");
+                                output.print("3. Items");
+                                output.print("4. NPCs");
+                                output.print("5. Misc");
+                            } else {
+                                switch(command[1]) {
+                                    case "1":
+                                        output.print("exits - shows available exits");
+                                        output.print("north (n), east (e), south (s), west (w), up (u), down (d) - walk in choosen direction");
+                                        break;
+
+                                    case "2":
+                                    case "3":
+                                    case "4":
+                                    case "5":
+                                        output.print("grey", "Not available");
+                                        break;
+
+                                    default:
+                                        output.print("grey", "No help page matching '" + command[1] + "'");
+                                }
+                            }
+                            break
+
+                        case "n":
+                        case "north":
+                            if(direction == null) direction = "n";
+
+                        case "e":
+                        case "east":
+                            if(direction == null) direction = "e";
+
+                        case "w":
+                        case "west":
+                            if(direction == null) direction = "w";
+
+
+                        case "s":
+                        case "south":
+                            if(direction == null) direction = "s";
+
+
+                        case "u":
+                        case "up":
+                            if(direction == null) direction = "u";
+
+
+                        case "d":
+                        case "down":
+                            if(direction == null) direction = "d";
+
+                            if(Object.keys(rooms.get(player.position).exits).indexOf(direction) != -1)
+                                rooms.change(rooms.get(player.position).exits[direction]);
+                            else commands.exec("exits");
+                            //output.print(output.color("red", "No exit in given direction!"));
+                            break;
+
+                        case "cls":
+                        case "clear":
+                            output.element.innerHTML = "";
+                            break;
+
+
+                        case "exits":
+                            output.print("Exits: " + Object.keys(
+                                rooms.get(player.position).exits
+                            ));
+                            break;
+
+                        default:
+                            toPrint = output.color("red", "Invalid command! Type 'help' for more info")
+                    }
+                }
+            };
+
+            let rooms = {
+                list: {
+                    start: {
+                        name: output.color("cyan", "Starting room"),
+                        description: "Starting room for every game",
+                        exits: {
+                            s: "southernRoom",
+                            e: "easternRoom"
+                        }
+                    },
+                    easternRoom: {
+                        name: output.color("cyan", "Eastern room"),
+                        description: "You are in the eastern room",
+                        exits: {
+                            w: "start"
+                        }
+                    },
+                    southernRoom: {
+                        name: output.color("cyan", "Southern room"),
+                        description: "You are in the southern room",
+                        exits: {
+                            n: "start"
+                        }
+                    }
+                },
+                get: (id) => rooms.list[id],
+                add: (id, room) => rooms.list[id] = room,
+                change: (id) => {
+                    player.position = id;
+                    output.print("<b>" + rooms.get(id).name + "</b>");
+                    output.print(rooms.get(id).description);
+                    for(let i in npcs.list) {
+                        if(npcs.hasOwnProperty(i)) {
+                            console.log(npcs[i].position);
+                            if(npcs[i].position == id) {
+                                output.print(npcs[i].name + " is here.");
+                            }
+                        }
+                    }
+                    commands.exec("exits");
+                }
+            };
+
+            let npcs = {
+                list: {
+                    dummy: {
+                        name: output.color("lime", "Dummy"),
+                        position: "easternRoom"
+                    }
+                },
+                get: (id) => this.list[id],
+                add: (id, npc) => this.list[id] = npc
+            };
+
+
+            /// Game contents
+
+            (function(){
+                player.name = "Mrozinsky";
+                rooms.change("start");
+            })();
+            
+        </script>
+
+    </body>
+</html>

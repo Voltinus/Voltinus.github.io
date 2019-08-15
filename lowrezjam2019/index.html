@@ -1,0 +1,148 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+        <script src="p5.min.js"></script>
+        <style>
+            canvas {
+                image-rendering: optimizeSpeed;             /* Legal fallback */
+                image-rendering: -moz-crisp-edges;          /* Firefox        */
+                image-rendering: -o-crisp-edges;            /* Opera          */
+                image-rendering: -webkit-optimize-contrast; /* Safari         */
+                image-rendering: optimize-contrast;         /* CSS3 Proposed  */
+                image-rendering: crisp-edges;               /* CSS4 Proposed  */
+                image-rendering: pixelated;                 /* CSS4 Proposed  */
+                -ms-interpolation-mode: nearest-neighbor;   /* IE8+           */
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            let width  = 64,
+                height = 64,
+                scale  = 4;
+
+            let img = {};
+            
+            let map = {
+                width: 20,
+                height: 20,
+                tileSize: 8
+            }
+
+            let resources = {
+                wood: 5,
+                stone: 5,
+                gold: 0
+            }
+
+            let font, groundColors;
+
+            function preload() {
+                font = loadFont("visitor1.ttf");
+                img.stone = loadImage("stone.jpg");
+                img.resources = loadImage("resources.png");
+                img.resourceBar = loadImage("resourceBar.png");
+                img.cursor = loadImage("cursor.png");
+            }
+
+            let gui;
+
+            function setup() {
+                let canvas = createCanvas(width, height).canvas;
+                canvas.style.width  = width  * scale + "px";
+                canvas.style.height = height * scale + "px";
+
+                gui = createGraphics(width, height);
+                gui.textFont(font);
+                gui.textSize(10);
+                gui.textAlign(LEFT, BASELINE);
+                gui.noStroke();
+
+                noStroke();
+
+                groundColors = new Array(map.width);
+                for(let i=0; i<map.width; i++) {
+                    groundColors[i] = new Array(map.height);
+                    for(let j=0; j<map.height; j++) {
+                        groundColors[i][j] = 100 + Math.random()*30;
+                    }
+                }
+
+                groundColors[10][10] = 0;
+                groundColors[11][11] = 255;
+            }
+
+            let cam = {
+                x: map.tileSize/2, y: map.tileSize/2,
+                speed: 1
+            };
+
+            function drawCastle() {
+                push();
+
+                texture(img.stone);
+                translate(0, 0, map.tileSize/3);
+                box(map.tileSize);
+
+                pop();
+            }
+
+            function draw() {
+                background(0, 115, 0);
+                gui.clear();
+
+                if(keyIsDown( LEFT_ARROW)) cam.x -= cam.speed;
+                if(keyIsDown(RIGHT_ARROW)) cam.x += cam.speed;
+                if(keyIsDown(   UP_ARROW)) cam.y -= cam.speed;
+                if(keyIsDown( DOWN_ARROW)) cam.y += cam.speed;
+
+                push(); // push before GUI
+
+                translate(width/2-cam.x, height/2-cam.y);
+
+                push(); // main redraw loop
+                translate(-Math.floor(map.width/2)*map.tileSize, -Math.floor(map.height/2)*map.tileSize);
+                for(let i=0; i<map.width; i++) {
+                    for(let j=0; j<map.height; j++) {
+                        // grass
+                        fill(0, groundColors[i][j], 0);
+                        rect(i*map.tileSize, j*map.tileSize, map.tileSize, map.tileSize);
+                        if(cam.x > i*map.tileSize     && cam.y > j*map.tileSize &&
+                           cam.x < (i+1)*map.tileSize && cam.y < (i+1)*map.tileSize) {
+                            gui.image(
+                                img.cursor,
+                                width /2 - 6 - (cam.x-4)%8,
+                                height/2 - 6
+                            );
+                        }
+
+                        // buildings
+                        if(i == Math.floor(map.width/2) && j == Math.floor(map.height/2)) {
+                            //drawCastle();
+                        }
+                    }
+                }
+                pop();
+
+                pop(); // pop before GUI
+
+                gui.image(img.resourceBar, 0, 0);
+                gui.image(img.resources,  5, 1, 5, 5,  0, 0, 5, 5);
+                gui.image(img.resources, 24, 1, 5, 5,  5, 0, 5, 5);
+                gui.image(img.resources, 43, 1, 5, 5, 10, 0, 5, 5);
+
+                gui.fill("#86694B");
+                gui.text(resources.wood, 12, 6);
+                gui.text(resources.stone, 31, 6);
+                gui.text(resources.gold, 50, 6);
+
+                gui.fill("#331100");
+                gui.text(resources.wood, 11, 6);
+                gui.text(resources.stone, 30, 6);
+                gui.text(resources.gold, 49, 6);
+
+                image(gui, 0, 0);
+            }
+        </script>
+    </body>
+</html>
