@@ -67,8 +67,12 @@
                     this.element.appendChild(elem);
                     elem.scrollIntoView();
                 },
+                say: function(person, msg) {
+                    output.print(`<b>${person}</b>: ${msg}`);
+                },
                 color: (c, text) =>
-                    "<span style='color: " + c + "'>" + text + "</span"
+                    "<span style='color: " + c + "'>" + text + "</span",
+                clear: () => output.element.innerHTML = ""
             };
 
             let input = {
@@ -85,7 +89,7 @@
             input.element.addEventListener("change", () => {
                 let command = input.get();
                 input.clear()
-                output.print(`<b>${player.name}</b>: ` + command);
+                player.say(command);
                 commands.exec(command);
             });
 
@@ -120,54 +124,95 @@
 
             let player = {
                 name: null,
-                position: "start"
+                position: "start",
+                say:   (msg) => output.say(player.name, msg),
+                think: (msg) => output.print(output.color("grey", msg)),
+                inventory: {
+                    list: {},
+                    add: (name, desc) => player.inventory.list[name] = desc,
+                    remove: (name) => delete player.inventory.list[name],
+                    check: (name) => player.inventory.list[name] != undefined
+                }
             };
 
-            let commands    = {
+            let commands = {
                 exec: (command) => {
                     if(command == "Tab") return;
 
                     let direction = null;
                     command = command.split(" ");
                     
-                    switch(command[0]) {
+                    let i = -1, actionDone = false;
+                    while((i = command.indexOf("the")) != -1) command.splice(i, 1);
+                    while((i = command.indexOf("an" )) != -1) command.splice(i, 1);
+                    while((i = command.indexOf("a"  )) != -1) command.splice(i, 1);
+                    while((i = command.indexOf("at" )) != -1) command.splice(i, 1);
+                    while((i = command.indexOf("on" )) != -1) command.splice(i, 1);
+
+                    let actions = rooms.get(player.position).actions;
+                    if(actions != undefined) {
+                        let action = actions[command.join(' ')];
+                        if(action != undefined) {
+                            output.print((action.check == undefined || action.check()) ? action.text : action.afterText);
+                            if(action.check == undefined || action.check()) action.exec();
+                            actionDone = true;
+                        }
+                    }
+
+                    if(!actionDone) switch(command[0]) {
                         case "/cls":
                         case "/clear":
                             output.element.innerHTML = "";
                             break;
 
-                        case "enter":
-                        case "go":
-                        case "approach":
-                            let exits = Object.keys(rooms.get(player.position).exits);
+                        case "enter":    if(command.length == 1) { output.print("grey", "Enter what?");    break; }
+                        case "go":       if(command.length == 1) { output.print("grey", "Go where?");      break; }
+                        case "approach": if(command.length == 1) { output.print("grey", "Approach what?"); break; }
+                        case "walk":     if(command.length == 1) { output.print("grey", "Walk where?");    break; }
+                            let exits = Object.keys(rooms.get(player.position).exits), changedRoom = false;
                             for(let i in exits) {
                                 if(command.indexOf(exits[i]) != -1) {
                                     rooms.change(rooms.get(player.position).exits[exits[i]]);
+                                    changedRoom = true;
+                                    break;
                                 }
                             }
+
+                            if(!changedRoom) player.think("Why would I do that?");
                             
                             break;
 
-                        default:
-                            let i = -1;
-                            while((i = command.indexOf("the")) != -1) command.splice(i, 1);
-                            while((i = command.indexOf("at" )) != -1) command.splice(i, 1);
-                            while((i = command.indexOf("on" )) != -1) command.splice(i, 1);
+                        case "n":
+                        case "north":
+                        case "e":
+                        case "east":
+                        case "w":
+                        case "west":
+                        case "s":
+                        case "south":
+                            player.think("I wish I only had a compass...");
+                            break;
 
-                            let action = rooms.get(player.position).actions[command.join(' ')];
-                            if(action != undefined) {
-                                output.print(action.check() ? action.text : action.afterText);
-                                action.action();
-                                break;
+                        case "inventory":
+                        case "i":
+                            let inventoryEmpty = true,
+                                inv = player.inventory.list;
+                            for(let key in inv) {
+                                if(!inv.hasOwnProperty(key)) continue;
+                                output.print(inv[key]);
+                                inventoryEmpty = false;
                             }
+                            if(inventoryEmpty) player.think("I don't have anything with me")
+                            break;
 
+                        default:
                             let dunnos = [
                                 "What?",
-                                "What was I going to do...?",
+                                //"What was I going to do...?",
                                 "Hmmm?"
                             ];
 
-                            output.print("grey", dunnos[Math.floor(dunnos.length * Math.random())]);
+                            player.think(dunnos[Math.floor(dunnos.length * Math.random())]);
                     }
                 }
             };
@@ -181,39 +226,172 @@
 
             let rooms = {
                 list: {
-                    start: {
-                        name: output.color("magenta", "Outside the Club"),
-                        description: "You're in Miami, the year is 1985. It's a warm summer night. The wind is softly blowing from the sea. You're standing in front of a night club. You see a bouncer and people standing in line to get in.",
-                        exits: {
-                            "club": "clubEntrance",
-                            "bouncer": "clubEntrance"
-                        },
-                        actions: {
-                            "ping": {
-                                text: "Pong!",
-                                afterText: "Ponged!",
-                                action: ()=> flags.set("pinged"),
-                                check: ()=> !flags.check("pinged")
-                            }
-                        }
-                    },
+                    secret: {
 
-                    clubEntrance: {
-                        name: "Test",
-                        description: "test",
-                        exits: {
-                            "start": "start"
-                        }
-                    },
+name: output.color("red", "Template"),
 
-                    template: {
-                        name: output.color("red", "Template"),
-                        description: "You're in an empty room with a purple and black grid pattern on the walls. There's a red \"Error\" sign floating in front of you.",
-                        exits: {
-                            "exit1": "void",
-                            "exit2": "void"
-                        }
-                    },
+description: "You're in an empty room with a purple and black grid pattern on the walls. There's a red \"Error\" sign floating in front of you.",
+
+exits: {
+
+    "exit1": "void",
+
+    "exit2": "void"
+
+}
+
+},
+
+start: {
+
+name: output.color("magenta", "Outside the Club"),
+
+description: "You're in Miami, the year is 1985. It's a warm summer night. The wind is softly blowing from the sea. You're standing in front of a night club. You see a bouncer and people standing in line to get in.",
+
+exits: {
+
+    "club": "clubEntrance",
+
+    "bouncer": "clubEntrance"
+
+},
+
+actions: {
+
+    "ping": {
+
+        text: "Pong!",
+
+        afterText: "Ponged!",
+
+        exec: ()=> {
+
+            flags.set("pinged");
+
+            output.print("Text");
+
+            rooms.change("start");
+
+        },
+
+        check: ()=> !flags.check("pinged")
+
+    }
+
+}
+
+},
+
+clubEntrance: {
+
+name: output.color("magenta", "The Bouncer"),
+
+description: "You approach the bouncer. He tells you to stand in line if you want to enter the club.",
+
+exits: {},
+
+actions: {
+
+    "stand in line": {
+
+        text: "You decide to stand in line. It's taking a long time.",
+
+        afterText: "You already did that and decided you should try something else.",
+
+        exec: ()=> {
+
+            flags.set("waitedInLine");
+
+            player.think("Why am I waiting in line? I'm a cop, I should just show him my badge.");
+
+        },
+
+        check: ()=> !flags.check("waitedInLine")
+
+    },
+
+    "show badge": {
+
+        text: "You show your badge to the bouncer.",
+
+        exec: ()=> {
+
+            player.say("Detective Mrozinsky, Miami PD.");
+
+            output.say("Bouncer", "OK. You can come in.");
+
+            rooms.change("clubInterior");
+
+        },
+
+        check: ()=> true
+
+    }
+
+}
+
+},
+
+clubInterior: {
+
+name: output.color("red", "Inside the Club"),
+
+description: "You are standing inside the club. You can see prostitutes, thieves and dealers dancing on the floor. Shady people, but at least the music is good. Phil Collins. You like Phil Collins. There are people standing by the bar.",
+
+exits: {
+
+    "bar": "bar",
+
+}
+
+},
+
+bar: {
+
+name: output.color("red", "Bar"),
+
+description: "You approach the bar. You see the barkeep talking to other customers.",
+
+exits: {}, 
+
+actions: {
+
+    "order drink": {
+
+        text: "You decide to order a drink.",
+
+        exec: ()=> {
+
+            player.say("Rum with Coke.");
+
+            output.say("Barkeep", "Rum with Coke?");
+
+            player.say("And vodka.");
+
+            output.say("Barkeep", "Rum with Coke and vodka.");
+
+            player.say("And gin.");
+
+            output.say("Barkeep", "Rum with Coke, vodka and gin.");
+
+            player.say("And whisky.");
+
+            output.say("Barkeep", "Rum with Coke, vodka, gin and whisky.");
+
+            player.say("Double.");
+
+            //rooms.change("theGirl");
+
+        }
+
+    }
+
+}
+
+},
+
+
+
                 },
                 get: (id) => rooms.list[id],
                 add: (id, room) => rooms.list[id] = room,
@@ -221,27 +399,31 @@
                     player.position = id;
                     output.print("<b>" + rooms.get(id).name + "</b>");
                     output.print(rooms.get(id).description);
-                    for(let i in npcs.list) {
-                        if(npcs.hasOwnProperty(i)) {
-                            console.log(npcs[i].position);
-                            if(npcs[i].position == id) {
-                                output.print(npcs[i].name + " is here.");
-                            }
-                        }
-                    }
                 }
             };
 
-            let npcs = {
-                list: {
-                    dummy: {
-                        name: output.color("lime", "Dummy"),
-                        position: "easternRoom"
-                    }
-                },
-                get: (id) => this.list[id],
-                add: (id, npc) => this.list[id] = npc
-            };
+
+            // Konami code code
+
+            let konamiCode = {
+                sequence: [
+                    "ArrowUp",   "ArrowUp",    "ArrowDown", "ArrowDown",
+                    "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight",
+                    "b", "a", "Enter"
+                ], counter: 0
+            }
+
+            document.body.addEventListener("keydown", (e) => {
+                if(e.key == konamiCode.sequence[konamiCode.counter])
+                    konamiCode.counter++;
+                else
+                    konamiCode.counter = 0;
+
+                if(konamiCode.counter == konamiCode.sequence.length) {
+                    output.clear();
+                    rooms.change("secret");
+                }
+            });
 
 
             /// Game contents
