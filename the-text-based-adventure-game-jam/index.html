@@ -89,7 +89,7 @@
             input.element.addEventListener("change", () => {
                 let command = input.get();
                 input.clear()
-                player.say(command);
+                player.say("*" + command + "*");
                 commands.exec(command);
             });
 
