@@ -92,7 +92,7 @@
                 player.say("*" + command + "*");
                 commands.exec(command);
             });
-            
+
 
             /// Globals
 
@@ -404,6 +404,7 @@ actions: {
 
             (function(){
                 player.name = "Mrozinsky";
+                player.inventory.add("badge", "It's your good old Miami Police Department badge. What else to say about it?");
                 rooms.change("start");
             })();
             
