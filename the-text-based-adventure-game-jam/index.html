@@ -92,33 +92,7 @@
                 player.say("*" + command + "*");
                 commands.exec(command);
             });
-
-            let hotkeyMode = false;
-
-            input.element.addEventListener("keydown", (e) => {
-                if(e.key == "Tab") {
-                    e.preventDefault();
-                    hotkeyMode = !hotkeyMode;
-                    if(hotkeyMode) {
-                        input.element.value = "HOTKEY MODE";
-                    } else {
-                        input.clear();
-                    }
-                }
-
-                if(hotkeyMode) {
-                    input.element.value = "HOTKEY MODE: ";
-                    commands.exec(e.key);
-                }
-            });
-
-            input.element.addEventListener("keyup", (e) => {
-                if(hotkeyMode) {
-                    input.element.value = "HOTKEY MODE";
-                    if(e.key != "Tab") input.element.value += ": " + e.key;
-                }
-            });
-
+            
 
             /// Globals
 
