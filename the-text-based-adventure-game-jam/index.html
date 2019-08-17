@@ -179,6 +179,11 @@
                             if(inventoryEmpty) player.think("I don't have anything with me")
                             break;
 
+                        case "look":
+                        case "l":
+                            rooms.change(player.position);
+                            break;
+
                         default:
                             let dunnos = [
                                 "What?",
