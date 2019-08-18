@@ -297,13 +297,11 @@ actions: {
 
             player.say("Detective Mrozinsky, Miami PD.");
 
-            output.say("Bouncer", "OK. You can come in.");
+            output.say("Bouncer", "Okay. You can come in.");
 
             rooms.change("clubInterior");
 
-        },
-
-        check: ()=> true
+        }
 
     }
 
@@ -359,7 +357,7 @@ actions: {
 
             player.say("Double.");
 
-            //rooms.change("theGirl");
+            rooms.change("theGirl");
 
         }
 
@@ -368,6 +366,113 @@ actions: {
 }
 
 },
+
+theGirl: {
+
+name: output.color("pink", "The Girl"),
+
+description: "You pull out a pack of cigarettes. You light one up and look around for your snitch Pachuco, but can't see him anywhere. A Cuban girl comes up to you instead.",
+
+exits: {},
+
+actions: {
+
+    "talk to girl": {
+
+        text: "You talk to the girl.",
+
+        exec: ()=> {
+
+            output.say("Girl", "Hi, sugar.");
+
+            player.say("Hi, sweet girl.");
+
+            output.say("Girl", "My name's Leticia.");
+
+            player.say("I don't like it. I'll call you Marzena.");
+
+            output.say("Leticia", "What?");
+
+            player.say("Marzena.");
+
+            output.say("Marzena", "Okay.");
+
+            output.print("You order a drink for her. Rum with Coke, vodka, gin and whisky. Double. You both drink.");
+
+            output.say("Marzena", "You like having fun?");
+
+            player.say("I love having fun. I spend all my free time in my bedroom solving puzzles.");
+
+            output.say("Marzena", "You're funny.");
+
+            player.say("I've heard that before.");
+
+            output.say("Marzena", "You have beautiful eyes.");
+
+            player.say("I've heard that before as well.");
+
+            output.say("Marzena", "Your hair smells amazing.");
+
+            player.say("It's because I wash it.");
+
+            output.say("Marzena", "Let's go to the toilet.");
+
+            player.say("Okay.");
+
+            rooms.change("theToilet");
+
+        }
+
+    }
+
+}
+
+},
+
+theToilet: {
+
+name: output.color("pink", "The Toilet"),
+
+description: "You follow Marzena to the toilet. You go into a stall and lock the door. You start kissing. You feel like pulling out your Glock and emptying the whole magazine, but Marzena pushes you away.",
+
+exits: {},
+
+actions: {
+
+    "ask": {
+
+        text: "You ask her what's wrong.",
+
+        exec: ()=> {
+
+            output.say("Marzena", "I have to tell you something about myself.");
+
+            player.say("No, don't do this.");
+
+            output.say("Marzena", "I have to, Detective. You know, I'm not really Leticia.");
+
+            player.say("Oh, fuck.");
+
+            output.say("Marzena", "I'm not even a woman.");
+
+            player.say("What?");
+
+            output.say("Marzena", "I'm a gorilla.");
+
+            output.print("Marzena takes off her blouse. It was a costume. A woman costume. Inside was a gorilla. It undresses and walks on its hands to the corner and sits at a drum kit.");
+
+            output.say("Gorilla", "Listen to this.");
+
+            output.print("The gorilla plays the drum intro to \"In The Air Tonight\" by Phil Collins. God, how beautifully it plays it. You listen. You can hear it. You can hear it in the air tonight.");
+
+        }
+
+    }
+
+}
+
+}
+
 
 
 
