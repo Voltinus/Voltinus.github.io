@@ -50,11 +50,33 @@
 
         <script>
 
+            let delay = {
+                millis: 500,
+                last: new Date().getTime(),
+                add: (callback) => {
+                    let now = new Date().getTime();
+
+                    if(now > delay.last + delay.millis) {
+                        callback();
+                        delay.last = now;
+                    }
+                    else if(now < delay.last) {
+                        setTimeout(callback, delay.last - now + delay.millis);
+                        delay.last += delay.millis;
+                    }
+                    else {
+                        setTimeout(callback, delay.millis - (now - delay.last));
+                        delay.last += delay.millis;
+                    }
+                }
+            }
+
+
             /// Input and output
             
             let output = {
                 element: document.getElementById("output"),
-                print: function(color, content) {
+                printNow: (color, content) => {
                     if(content == undefined) {
                         content = color;
                         color = undefined;
@@ -64,14 +86,25 @@
                         elem.style.color = color;
                     }
                     elem.innerHTML = content;
-                    this.element.appendChild(elem);
+                    output.element.appendChild(elem);
                     elem.scrollIntoView();
                 },
-                say: function(person, msg) {
-                    output.print(`<b>${person}</b>: ${msg}`);
+                print: (color, content) => delay.add(() => {output.printNow(color, content)}),
+                sayNow: (person, msg) => {
+                    switch(person) {
+                        case "Mrozinsky": person = output.color("lime", person); break;
+                        case "Leticia":   person = output.color("blue", person); break;
+                        case "Marzena":   person = output.color("blue", person); break;
+                        case "Girl":      person = output.color("blue", person); break;
+                        case "Gorilla":   person = output.color("darkblue", person); break;
+                        case "Barkeep":   person = output.color("orange", person); break;
+                        case "Bouncer":   person = output.color("brown", person); break;
+                    }
+                    output.printNow(`<b>${person}</b>: ${msg}`);
                 },
+                say:   (person, msg)    => delay.add(() => {output.sayNow(person, msg)}),
                 color: (c, text) =>
-                    "<span style='color: " + c + "'>" + text + "</span",
+                    "<span style='color: " + c + "'>" + text + "</span>",
                 clear: () => output.element.innerHTML = ""
             };
 
@@ -122,6 +155,7 @@
                     while((i = command.indexOf("a"  )) != -1) command.splice(i, 1);
                     while((i = command.indexOf("at" )) != -1) command.splice(i, 1);
                     while((i = command.indexOf("on" )) != -1) command.splice(i, 1);
+                    while((i = command.indexOf("to" )) != -1) command.splice(i, 1);
 
                     let actions = rooms.get(player.position).actions;
                     if(actions != undefined) {
@@ -205,6 +239,7 @@
 
             let rooms = {
                 list: {
+
                     secret: {
 
 name: output.color("red", "Template"),
@@ -271,6 +306,40 @@ exits: {},
 
 actions: {
 
+    "talk": {
+
+        text: "You decide to talk to the bouncer.",
+
+        exec: ()=> {
+
+            var rand = Math.floor(Math.random()*3);
+
+            switch(rand){
+
+                case 0:
+
+                    output.say("Bouncer", "Sorry, mate. You have to stand in line like the others.");
+
+                    break;
+
+                case 1:
+
+                    output.say("Bouncer", "Stand in line or get lost.");
+
+                    break;
+
+                case 2:
+
+                    output.say("Bouncer", "The only way I'd let you skip the line is if you were a cop.");
+
+                    break;
+
+            }
+
+        }
+
+    },
+
     "stand in line": {
 
         text: "You decide to stand in line. It's taking a long time.",
@@ -297,7 +366,7 @@ actions: {
 
             player.say("Detective Mrozinsky, Miami PD.");
 
-            output.say("Bouncer", "Okay. You can come in.");
+            output.say("Bouncer", "Okay. You can go in.");
 
             rooms.change("clubInterior");
 
@@ -333,6 +402,73 @@ exits: {},
 
 actions: {
 
+    "talk": {
+
+        text: "You decide to talk to the barkeep.",
+
+        exec: ()=> {
+
+            var rand = Math.floor(Math.random()*3);
+
+            switch(rand){
+
+                case 0:
+
+                    output.say("Barkeep", "Would you like to order a drink, Detective?");
+
+                    break;
+
+                case 1:
+
+                    output.say("Barkeep", "What should I serve you tonight, Detective?");
+
+                    break;
+
+                case 2:
+
+                    output.say("Barkeep", "Is everything in order, Detective?");
+
+                    break;
+
+            }
+
+        }
+
+    },
+
+"talk barkeep": {
+
+    text: "You decide to talk to the barkeep.",
+
+    exec: ()=> {
+
+        var rand = Math.floor(Math.random()*3);
+
+        switch(rand){
+
+            case 0:
+
+                output.say("Barkeep", "Would you like to order a drink, Detective?");
+
+                break;
+
+            case 1:
+
+                output.say("Barkeep", "What should I serve you tonight, Detective?");
+
+                break;
+
+            case 2:
+
+                output.say("Barkeep", "Is everything in order, Detective?");
+
+                break;
+
+        }
+
+    }
+
+},
     "order drink": {
 
         text: "You decide to order a drink.",
@@ -377,7 +513,7 @@ exits: {},
 
 actions: {
 
-    "talk to girl": {
+    "talk girl": {
 
         text: "You talk to the girl.",
 
@@ -451,19 +587,24 @@ actions: {
 
             output.say("Marzena", "I have to, Detective. You know, I'm not really Leticia.");
 
-            player.say("Oh, fuck.");
+            player.say("Oh, no.");
 
             output.say("Marzena", "I'm not even a woman.");
 
             player.say("What?");
 
-            output.say("Marzena", "I'm a gorilla.");
+            output.say("Gorilla", "I'm a gorilla.");
 
             output.print("Marzena takes off her blouse. It was a costume. A woman costume. Inside was a gorilla. It undresses and walks on its hands to the corner and sits at a drum kit.");
 
             output.say("Gorilla", "Listen to this.");
 
             output.print("The gorilla plays the drum intro to \"In The Air Tonight\" by Phil Collins. God, how beautifully it plays it. You listen. You can hear it. You can hear it in the air tonight.");
+
+            delay.add(() => {
+                input.element.disabled = true;
+                input.element.value = "THE END";
+            });
 
         }
 
@@ -472,6 +613,7 @@ actions: {
 }
 
 }
+
 
 
 
