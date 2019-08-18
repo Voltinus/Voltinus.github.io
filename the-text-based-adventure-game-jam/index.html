@@ -116,6 +116,7 @@
                 clear: () => input.element.value = ""
             };
             input.clear();
+            input.element.focus();
 
             output.element.addEventListener("click", () => {
                 input.element.focus();
