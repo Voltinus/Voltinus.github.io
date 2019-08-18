@@ -48,6 +48,8 @@
             <input id="input" type="text"/>
         </div>
 
+        <div style="height: 500px"></div>
+
         <script>
 
             let delay = {
@@ -87,7 +89,7 @@
                     }
                     elem.innerHTML = content;
                     output.element.appendChild(elem);
-                    elem.scrollIntoView();
+                    output.element.scrollTo(0, output.element.scrollHeight);
                 },
                 print: (color, content) => delay.add(() => {output.printNow(color, content)}),
                 sayNow: (person, msg) => {
