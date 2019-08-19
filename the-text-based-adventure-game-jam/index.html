@@ -25,6 +25,7 @@
                 color: #eee;
                 border: 0;
                 padding-left: 10px;
+                outline: none;
             }
             
             #output {
@@ -32,14 +33,8 @@
                 height: 360px;
                 overflow: auto;
             }
-            
-            @media (min-width:320px)  { /* smartphones, iPhone, portrait 480x320 phones */ }
-            @media (min-width:481px)  { /* portrait e-readers (Nook/Kindle), smaller tablets @ 600 or @ 640 wide. */ }
-            @media (min-width:641px)  { /* portrait tablets, portrait iPad, landscape e-readers, landscape 800x480 or 854x480 phones */ }
-            @media (min-width:961px)  { /* tablet, landscape iPad, lo-res laptops ands desktops */ }
-            @media (min-width:1025px) { /* big landscape tablets, laptops, and desktops */ }
-            @media (min-width:1281px) { /* hi-res laptops and desktops */ }
         </style>
+        <script src="sud.js"></script>
     </head>
     <body>
 
@@ -48,9 +43,12 @@
             <input id="input" type="text"/>
         </div>
 
-        <div style="height: 500px"></div>
-
         <script>
+
+            if(!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) {
+                // fix for displaying in iframe on Chrome
+                document.getElementById("game").style.marginTop = "280px";
+            }
 
             let delay = {
                 millis: 500,
