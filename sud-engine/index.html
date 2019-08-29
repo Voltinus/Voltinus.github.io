@@ -1,0 +1,109 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <style>
+        * {
+            font-family: "Lucida Console", Monaco, monospace
+        }
+
+        body {
+            margin: auto;
+            overflow: hidden;
+            background: #070707;
+            color: #eee;
+        }
+
+        #game {
+            margin: auto;
+            margin-top: 100px;
+            width: 600px;
+            height: 400px;
+        }
+
+        #input {
+            width: 100%;
+            height: 40px;
+            background: #111;
+            color: #eee;
+            border: 0;
+            padding-left: 10px;
+            outline: none;
+        }
+
+        #output {
+            width: 100%;
+            height: 360px;
+            overflow: auto;
+        }
+    </style>
+    <script src="sud.js"></script>
+</head>
+
+<body>
+
+    <div id="game">
+        <div id="output"></div>
+        <input id="input" type="text" />
+    </div>
+
+    <script>
+
+        let config = {
+            inputId: "input",
+            outputId: "output",
+
+            lazyPrinting: true,
+            lazyPrintingDelay: 500,
+
+            player: {
+                name: "Player",
+                color: "lime",
+                inventory: {
+                    badge: "It's your good old Miami Police Department badge. What else to say about it?"
+                }
+            },
+
+            rooms: {
+                start: {
+                    name: (that) => 
+                        that.flag.check("yellow") ? SUD.color("yellow", "Yellow room") :
+                                                    "Starting room",
+
+                    description: (that) =>
+                        that.flag.check("yellow") ? "You are in the yellow room" :
+                                                    "You are in the starting room",
+
+                    exits: {},
+
+                    actions: {
+                        "ping": {
+                            text: "Pong!",
+                            afterText: "Ponged!",
+
+                            exec: (that) => {
+                                that.flag.set("pinged");
+                                that.print("Text");
+                                that.room.change("start");
+                            },
+
+                            check: (that) => !that.flag.check("pinged")
+                        },
+                        "paint": {
+                            text: "You paint the room " + SUD.color("#FF0", "yellow") + "!",
+                            afterText: "That room is already yellow.",
+
+                            exec: (that) => that.flag.set("yellow"),
+                            check: (that) => !that.flag.check("yellow")
+                        }
+                    }
+                }
+            }
+        };
+
+        let game = new SUD(config);
+
+    </script>
+</body>
+
+</html>

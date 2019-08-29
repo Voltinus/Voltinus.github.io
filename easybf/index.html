@@ -1,0 +1,210 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+        
+        pre {
+            white-space: pre-wrap;       /* Since CSS 2.1 */
+            white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+            white-space: -pre-wrap;      /* Opera 4-6 */
+            white-space: -o-pre-wrap;    /* Opera 7 */
+            word-wrap: break-word;       /* Internet Explorer 5.5+ */
+        }
+        
+        </style>
+    </head>
+    <body>
+        <pre id="input">
+
+string #0 "Ola"
+print #0
+
+        </pre>
+        <pre id="output"></pre>
+        <pre>
+
+            Usage:
+
+            #n - cell, where n is a number of that cell
+
+            #0 = 1          - set value of the cell #0 to 1
+            #0 = 1 using #2 - set value of #0 to 1 using #2
+            clear #0        - set value of #0 to 0
+            out #0          - print ASCII value stored in cell #0
+            in #0           - store a value from input in cell #0
+            move #0 #1      - #1 += #0; clear #0
+            string #0 "foo" - store ASCII values of f, o and o in cells #0, #1 and #2
+            print #0        - output all values from #0 until reaches value 0
+            printClear #0   - same as print, but clears printed fields
+
+        </pre>
+
+        <script>
+        
+            let input  = document.getElementById("input").innerHTML.split(""),
+                output = document.getElementById("output");
+
+            let usedCells = [];
+
+            let stringMode = false;
+            for(let i in input) {
+                if(input[i] == "\"") stringMode = !stringMode;
+                if(input[i] == " " && stringMode) {
+                    input[i] = String.fromCharCode(237);
+                }
+            }
+            input = input.join("").split(/[ \n]/);
+            
+            let tokens = [];
+            for(let i in input) {
+                let token = input[i];
+                if(token === "") continue;
+                token = token.split(String.fromCharCode(237)).join(" ");
+                tokens.push(token);
+            }
+
+            let index = 0;
+        
+            function norm(n) { return n>0 ? 1 : n<0 ? -1 : 0; }
+            function out(s) { output.innerHTML += s; }
+            function moveTo(addr) {
+                for(let j=index; j!=addr; j+=norm(addr-index)) {
+                    out(norm(addr-index)>0?">":"<");
+                }
+                index = +addr;
+            }
+            function repeat(a, b) {
+                let s = "";
+                for(let i=0; i<b; i++) s += a;
+                return s; 
+            }
+            function pack(dest, val, using) {
+                let a = Math.round(Math.sqrt(val)),
+                    b = val-(a*a);
+
+                if(usedCells[dest]) {
+                    moveTo(dest);
+                    out("[-]"); 
+                } else usedCells[dest] = true;
+                moveTo(using);
+                if(usedCells[using]) out("[-]"); else usedCells[using] = true;
+                out(repeat("+", a) + "[");
+                moveTo(dest);
+                out(repeat("+", a));
+                moveTo(using);
+                out("-]");
+                if(b) {
+                    moveTo(dest);
+                    out(repeat(b>0?"+":"-", Math.abs(b)));
+                }
+            }
+            
+            function command() {
+                switch(arguments[0]) {
+                    case "clear": moveTo(+(arguments[1].substr(1))); out("[-]"); break;
+                    case "out":   moveTo(+(arguments[1].substr(1))); out(".");   break;
+                    case "in":    moveTo(+(arguments[1].substr(1))); out(",");   break;
+                    case "move":  moveTo(+(arguments[1].substr(1))); out("[");
+                                  moveTo(+(arguments[2].substr(1))); out("+");
+                                  moveTo(+(arguments[1].substr(1))); out("-]");  break;
+                    case "string":
+                        moveTo(+(arguments[1].substr(1)));
+                        let str = arguments[2].split("\"")[1],
+                            start = index;
+                        for(let j in str) {
+                            j=+j;
+                            pack(start+j, str.charCodeAt(j), start+j+1);
+                        }
+                }
+            }
+
+            for(let i=0; i<tokens.length; i++) {
+                if(tokens[i] == "clear" ||
+                   tokens[i] == "out"   ||
+                   tokens[i] == "in") {
+                    command(tokens[i], tokens[i+1]);
+                    i++
+                } else
+                if(tokens[i] == "move" ||
+                   tokens[i] == "string") {
+                    command(tokens[i], tokens[i+1], tokens[i+2]);
+                    i+=2;
+                } else
+                if(tokens[i] == "print") {
+                    moveTo(+(tokens[i+1].substr(1)));
+                    out("[.>]");
+                    i++;
+                } else
+                if(tokens[i] == "printClear") {
+                    moveTo(+(tokens[i+1].substr(1)));
+                    out("[.[-]>]");
+                    i++;
+                } else
+                if(tokens[i][0] == "#") {
+                    if(tokens[i+1] == "=") {
+                        if(tokens[i+3] == "using") { // #0 = 1 using #2
+                            pack(
+                                +(tokens[i].substr(1)),
+                                (
+                                    isNaN(+tokens[i+2]) ?
+                                    tokens[i+2].split("'")[1].charCodeAt(0) :
+                                    +tokens[i+2]
+                                ),
+                                +(tokens[i+4].substr(1))
+                            );
+                            i += 4;
+                        }
+                        else if(tokens[i+3] == "+") {
+                            let a = +(tokens[i+2].substr(1)),
+                                b = +(tokens[i+4].substr(1)),
+                                dest = +(tokens[i].substr(1));
+                            
+                            if(usedCells[dest]) {
+                                moveTo(dest);
+                                out("[-]");
+                            } else usedCells[dest] = true;
+                            moveTo(a);
+                            out("[");
+                            moveTo(dest);
+                            out("+");
+                            moveTo(a);
+                            out("-]");
+                            moveTo(b);
+                            out("[");
+                            moveTo(dest);
+                            out("+");
+                            moveTo(b);
+                            out("-]")
+                        }
+                        else {
+                            if(isNaN(+tokens[i+2])) {
+                                tokens[i+2] = tokens[i+2].split("'")[1].charCodeAt(0);
+                            }
+                            moveTo(+(tokens[i].substr(1)));
+                            if(usedCells[+(tokens[i].substr(1))]) out("[-]"); else usedCells[+(tokens[i].substr(1))] = true;
+                            out(repeat("+", +tokens[i+2]));
+                            i += 2;
+                        }
+                        
+                    }
+                }
+                else if(tokens[i] == "setCells") {
+                    let addr = +(tokens[++i].substr(1)),
+                        values = [];
+
+                    while(tokens[++i] != ";") values.push(
+                        isNaN(+tokens[i]) ? tokens[i].charCodeAt(0) : +tokens[i]
+                    );
+                    
+                    for(let j in values) { // dest, val, using
+                        j=+j;
+                        pack(addr+j, values[j], addr+j+1);
+                    }
+                }
+            }
+
+            output.innerHTML = output.innerHTML.split("><").join("");
+
+        </script>
+    </body>
+</html>

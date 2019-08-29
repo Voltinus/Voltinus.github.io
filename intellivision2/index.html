@@ -1,0 +1,284 @@
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+            canvas {
+                image-rendering: optimizeSpeed;             /* Legal fallback */
+                image-rendering: -moz-crisp-edges;          /* Firefox        */
+                image-rendering: -o-crisp-edges;            /* Opera          */
+                image-rendering: -webkit-optimize-contrast; /* Safari         */
+                image-rendering: optimize-contrast;         /* CSS3 Proposed  */
+                image-rendering: crisp-edges;               /* CSS4 Proposed  */
+                image-rendering: pixelated;                 /* CSS4 Proposed  */
+                -ms-interpolation-mode: nearest-neighbor;   /* IE8+           */
+
+                background: black;
+                width: 636px;
+                height: 384px;
+            }
+
+            body {
+                background: #111;
+            }
+        </style>
+        <script src="p5.min.js"></script>
+    </head>
+    <body>
+        <script>
+            
+            let canvas, sprites, tiles = [];
+            var pacman, munchkin;
+
+            function preload() {
+                sprites = loadImage("sprites.png");
+            }
+
+            function setup() {
+                canvas = createCanvas(159, 96).canvas;
+                canvas.style.width = "636px";
+                canvas.style.height = "384px";
+                frameRate(20);
+
+                restart();
+            }   
+            
+            function draw() {
+
+                if(keyIsDown(UP_ARROW))    movePlayer("munchkin",  0, -1);
+                if(keyIsDown(DOWN_ARROW))  movePlayer("munchkin",  0,  1);
+                if(keyIsDown(LEFT_ARROW))  movePlayer("munchkin", -1,  0);
+                if(keyIsDown(RIGHT_ARROW)) movePlayer("munchkin",  1,  0);
+
+                if(keyIsDown("W".charCodeAt(0))) movePlayer("pacman",  0, -1);
+                if(keyIsDown("S".charCodeAt(0))) movePlayer("pacman",  0,  1);
+                if(keyIsDown("A".charCodeAt(0))) movePlayer("pacman", -1,  0);
+                if(keyIsDown("D".charCodeAt(0))) movePlayer("pacman",  1,  0);
+
+                movePlayer("pacman", 0, 0);
+                movePlayer("munchkin", 0, 0);
+
+                clear();
+
+                if(pacman.immortal%7<4) {
+                    if(pacman.dead) tint(255, 50); 
+                    drawTile("pacman" + (
+                        frameCount%8<2  ? "0" :
+                        frameCount%8<4 ? pacman.dir + "2" :
+                        frameCount%8<6 ? pacman.dir : pacman.dir + "2"
+                    ), pacman.x, pacman.y);
+                    tint(255, 255);
+                }
+
+                if(munchkin.immortal%7<4) drawTile("munchkin" + (
+                    frameCount%4<2  ? "0" : munchkin.dir
+                ), munchkin.x, munchkin.y);
+
+                if(pacman.immortal) pacman.immortal--;
+                if(munchkin.immortal) munchkin.immortal--;
+
+                // bombs and explosions
+                for(let i in tiles) {
+                    if(tiles[i][0].substr(0, 4) == "bomb") {
+                        if(--tiles[i][3] === 0) {
+                            if(tiles[i][0].substr(-1) == "1") {
+                                tiles[i][0] = tiles[i][0].substr(0, tiles[i][0].length-1);
+                                tiles[i][3] = window[tiles[i][0].substr(4).toLowerCase()].fuse;
+                                tiles[i][0] += "2";
+                            } else
+                            if(tiles[i][0].substr(-1) == "2") {
+                                tiles[i][0] = tiles[i][0].substr(0, tiles[i][0].length-1);
+                                tiles[i][3] = window[tiles[i][0].substr(4).toLowerCase()].fuse;
+                                tiles[i][0] += "3";
+                            } else
+                            if(tiles[i][0].substr(-1) == "3") {
+                                tiles[i][0] = tiles[i][0].substr(0, tiles[i][0].length-1);
+                                tiles[i][0] = tiles[i][0].substr(4);
+                                addExplosion(...tiles[i]);
+                                tiles[i][3] = window[tiles[i][0].toLowerCase()].fuse*2;
+                                tiles[i][0] += "0";
+                                tiles[i][0] = "explosion" + tiles[i][0];
+                            }
+                        }
+                    } else
+                    if(tiles[i][0].substr(0, 9) == "explosion") {
+                        if(tiles[i][3] === undefined) continue;
+                        if(--tiles[i][3] === 0) {
+                            if(tiles[i][0].substr(-1) == "0") {
+                                window[(tiles[i][0].substr(0, tiles[i][0].length-1).substr(9)).toLowerCase()].bombs++;
+                            }
+                            tiles.splice(i, 1);
+                        }
+                    }
+                }
+
+                // redraw sprites
+                for(let tile of tiles) {
+                    drawTile(...tile);
+                }
+            }
+
+            function addTile(type, x, y, meta) {
+                tiles[tiles.length] = [type, x*8, y*8, meta];
+            }
+
+            function drawTile(type, x, y) {
+                let types = {
+                    void:      [-1, -1],
+                    wall:      [ 0,  3],
+                    obstacle:  [ 1,  3],
+
+                    pacman0:   [ 0,  0],
+                    pacmanE:   [ 1,  0],
+                    pacmanE2:  [ 1,  1],
+                    pacmanS:   [ 2,  0],
+                    pacmanS2:  [ 2,  1],
+                    pacmanW:   [ 3,  0],
+                    pacmanW2:  [ 3,  1],
+                    pacmanN:   [ 4,  0],
+                    pacmanN2:  [ 4,  1],
+
+                    munchkin0: [ 0,  2],
+                    munchkinE: [ 1,  2],
+                    munchkinS: [ 2,  2],
+                    munchkinW: [ 3,  2],
+                    munchkinN: [ 4,  2],
+
+                    bombPacman1: [5, 0],
+                    bombPacman2: [6, 0],
+                    bombPacman3: [7, 0],
+                    explosionPacman0: [5, 1],
+                    explosionPacmanH: [6, 1],
+                    explosionPacmanV: [7, 1],
+
+                    bombMunchkin1: [5, 2],
+                    bombMunchkin2: [6, 2],
+                    bombMunchkin3: [7, 2],
+                    explosionMunchkin0: [5, 3],
+                    explosionMunchkinH: [6, 3],
+                    explosionMunchkinV: [7, 3],
+
+                    0: [0, 4],
+                    1: [1, 4],
+                    2: [2, 4],
+                    3: [3, 4],
+                    4: [4, 4],
+                    5: [5, 4],
+                    6: [6, 4],
+                    7: [7, 4],
+                    8: [0, 5],
+                    9: [1, 5]
+                }
+
+                let t = types[type];
+                if(t === undefined) {
+                    t = [-1, -1];
+                    console.log("Undefined tile");
+                }
+                
+                image(sprites, x, y, 8, 8, t[0]*8, t[1]*8, 8, 8);
+            }
+            
+            function getTile(x, y) {
+                for(let tile of tiles) {
+                    if(tile[1] == x*8 && tile[2] == y*8) return tile;
+                }
+
+                return undefined;
+            }
+
+            function movePlayer(player, dx, dy) {
+                if(dx == -1) window[player].dir = "W"; else
+                if(dx ==  1) window[player].dir = "E"; else
+                if(dy == -1) window[player].dir = "N"; else
+                if(dy ==  1) window[player].dir = "S"
+
+                for(let tile of tiles) {
+                    if(collision(window[player].x, window[player].y, tile[1], tile[2]) && tile[0].substr(0, 4) == "bomb") continue;
+                    if(collision(window[player].x + dx, window[player].y + dy, tile[1], tile[2])) {
+                        if(tile[0].substr(0, 9) == "explosion" && tile[0].toLowerCase().indexOf(player) == -1) {
+                            if(window[player].immortal || window[player].dead) continue;
+                            
+                            if(--window[player].hp === 0) {
+                                window[player].dead = true;
+                            }
+
+                            window[player].immortal = 100;
+                        }
+                        return;
+                    }
+                }
+
+                if(player == "pacman") {
+                    if(collision(window[player].x + dx, window[player].y + dy, munchkin.x, munchkin.y)) return;
+                } else if(player == "munchkin") {
+                    if(collision(window[player].x + dx, window[player].y + dy, pacman.x, pacman.y)) return;
+                }
+
+                window[player].x += dx * window[player].speed;
+                window[player].y += dy * window[player].speed;
+            }
+
+            function collision(x1, y1, x2, y2) {
+                return !(x1 <= x2-8 || x2 <= x1-8 || y1 <= y2-8 || y2 <= y1-8);
+            }
+
+            function restart() {
+                tiles = [];
+
+                for(let i=0; i<12; i++) {
+                    addTile("wall", 19, i);
+                    addTile("wall", 5,  i);
+                }
+                for(let i=0; i<17; i++) {
+                    addTile("wall", i+6, 0);
+                    addTile("wall", i+6, 11);
+                }
+
+                pacman  = {
+                    x: 48, y: 8,
+                    dir: "E", speed: 2,
+                    hp: 3, immortal: 0,
+                    bombs: 3, fuse: 10, power: 2
+                };
+
+                munchkin  = {
+                    x: 144, y: 80,
+                    dir: "W", speed: 2,
+                    hp: 3, immortal: 0,
+                    bombs: 1, fuse: 10, power: 2
+                };
+            }
+
+            function keyPressed() {
+                switch(keyCode) {
+                    case "R".charCodeAt(0): restart(); break;
+                    case "F".charCodeAt(0): // pacman bomb
+                        if(pacman.bombs) {
+                            addTile("bombPacman1", Math.round(pacman.x/8), Math.round(pacman.y/8), pacman.fuse);
+                            pacman.bombs--;
+                        }
+                        break;
+
+                    case "P".charCodeAt(0): // munchkin bomb
+                        if(munchkin.bombs) {
+                            addTile("bombMunchkin1", Math.round(munchkin.x/8), Math.round(munchkin.y/8), munchkin.fuse);
+                            munchkin.bombs--;
+                        }
+                        break;
+                }
+            }
+        
+            function addExplosion(player, x, y) {
+                // to store if beam was interrupted in this direction
+                let [ n, e, w, s ] = [ false, false, false, false ];
+
+                for(let i=8; i<=window[player.toLowerCase()].power*8; i+=8) {
+                    if(!n) if(getTile(x/8, (y-i)/8) === undefined) addTile("explosion" + player + "V", x/8, (y-i)/8, window[player.toLowerCase()].fuse*2); else n = true;
+                    if(!s) if(getTile(x/8, (y+i)/8) === undefined) addTile("explosion" + player + "V", x/8, (y+i)/8, window[player.toLowerCase()].fuse*2); else s = true;
+                    if(!w) if(getTile((x-i)/8, y/8) === undefined) addTile("explosion" + player + "H", (x-i)/8, y/8, window[player.toLowerCase()].fuse*2); else w = true;
+                    if(!e) if(getTile((x+i)/8, y/8) === undefined) addTile("explosion" + player + "H", (x+i)/8, y/8, window[player.toLowerCase()].fuse*2); else e  = true;
+                }
+            }
+        </script>
+    </body>
+</html>

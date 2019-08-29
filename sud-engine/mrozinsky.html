@@ -1,0 +1,529 @@
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <style>
+        * {
+            font-family: "Lucida Console", Monaco, monospace
+        }
+
+        body {
+            margin: auto;
+            overflow: hidden;
+            background: #070707;
+            color: #eee;
+        }
+
+        #game {
+            margin: auto;
+            margin-top: 100px;
+            width: 600px;
+            height: 400px;
+        }
+
+        #input {
+            width: 100%;
+            height: 40px;
+            background: #111;
+            color: #eee;
+            border: 0;
+            padding-left: 10px;
+            outline: none;
+        }
+
+        #output {
+            width: 100%;
+            height: 360px;
+            overflow: auto;
+        }
+    </style>
+    <script src="sud.js"></script>
+</head>
+
+<body>
+
+    <div id="game">
+        <div id="output"></div>
+        <input id="input" type="text" />
+    </div>
+
+    <script>
+
+        let config = {
+            inputId: "input",
+            outputId: "output",
+
+            lazyPrinting: true,
+            lazyPrintingDelay: 500,
+
+            player: {
+                name: "Mrozinsky",
+                color: "lime",
+                inventory: {
+                    badge: "It's your good old Miami Police Department badge. What else to say about it?"
+                }
+            },
+
+            rooms: {
+                secret: {
+
+                    name: SUD.color("red", "Template"),
+
+                    description: "You're in an empty that.room with a purple and black grid pattern on the walls. There's a red \"Error\" sign floating in front of you.",
+
+                    exits: {
+
+                        "exit1": "void",
+
+                        "exit2": "void"
+
+                    }
+
+                },
+
+                start: {
+
+                    name: SUD.color("magenta", "Outside the Club"),
+
+                    description: "You're in Miami, the year is 1985. It's a warm summer night. The wind is softly blowing from the sea. You're standing in front of a night club. You see a bouncer and people standing in line to get in.",
+
+                    exits: {
+
+                        "club": "clubEntrance",
+
+                        "bouncer": "clubEntrance"
+
+                    },
+
+                    actions: {
+
+                        "ping": {
+
+                            text: "Pong!",
+
+                            afterText: "Ponged!",
+
+                            exec: (that) => {
+
+                                that.flag.set("pinged");
+
+                                that.print("Text");
+
+                                that.room.change("start");
+
+                            },
+
+                            check: () => !that.flag.check("pinged")
+
+                        }
+
+                    }
+
+                },
+
+                clubEntrance: {
+
+                    name: SUD.color("magenta", "The Bouncer"),
+
+                    description: "You approach the bouncer. He tells you to stand in line if you want to enter the club.",
+
+                    exits: {},
+
+                    actions: {
+
+                        "talk": {
+
+                            text: "You decide to talk to the bouncer.",
+
+                            exec: (that) => {
+
+                                switch (Math.floor(Math.random() * 3)) {
+
+                                    case 0:
+
+                                        that.say("Bouncer", "Sorry, mate. You have to stand in line like the others.");
+
+                                        break;
+
+                                    case 1:
+
+                                        that.say("Bouncer", "Stand in line or get lost.");
+
+                                        break;
+
+                                    case 2:
+
+                                        that.say("Bouncer", "The only way I'd let you skip the line is if you were a cop.");
+
+                                        break;
+
+                                }
+
+                            }
+
+                        },
+
+                        "stand in line": {
+
+                            text: "You decide to stand in line. It's taking a long time.",
+
+                            afterText: "You already did that and decided you should try something else.",
+
+                            exec: (that) => {
+
+                                that.flag.set("waitedInLine");
+
+                                that.player.think("Why am I waiting in line? I'm a cop, I should just show him my badge.");
+
+                            },
+
+                            check: () => !that.flag.check("waitedInLine")
+
+                        },
+
+                        "show badge": {
+
+                            text: "You show your badge to the bouncer.",
+
+                            exec: (that) => {
+
+                                that.player.say("Detective Mrozinsky, Miami PD.");
+
+                                that.say("Bouncer", "Okay. You can go in.");
+
+                                that.room.change("clubInterior");
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                clubInterior: {
+
+                    name: SUD.color("red", "Inside the Club"),
+
+                    description: "You are standing inside the club. You can see prostitutes, thieves and dealers dancing on the floor. Shady people, but at least the music is good. Phil Collins. You like Phil Collins. There are people standing by the bar.",
+
+                    exits: {
+
+                        "bar": "bar",
+
+                    }
+
+                },
+
+                bar: {
+
+                    name: SUD.color("red", "Bar"),
+
+                    description: "You approach the bar. You see the barkeep talking to other customers.",
+
+                    exits: {},
+
+                    actions: {
+
+                        "talk": {
+
+                            text: "You decide to talk to the barkeep.",
+
+                            exec: (that) => {
+
+                                var rand = Math.floor(Math.random() * 3);
+
+                                switch (rand) {
+
+                                    case 0:
+
+                                        that.say("Barkeep", "Would you like to order a drink, Detective?");
+
+                                        break;
+
+                                    case 1:
+
+                                        that.say("Barkeep", "What should I serve you tonight, Detective?");
+
+                                        break;
+
+                                    case 2:
+
+                                        that.say("Barkeep", "Is everything in order, Detective?");
+
+                                        break;
+
+                                }
+
+                            }
+
+                        },
+
+                        "talk barkeep": {
+
+                            text: "You decide to talk to the barkeep.",
+
+                            exec: (that) => {
+
+                                var rand = Math.floor(Math.random() * 3);
+
+                                switch (rand) {
+
+                                    case 0:
+
+                                        that.say("Barkeep", "Would you like to order a drink, Detective?");
+
+                                        break;
+
+                                    case 1:
+
+                                        that.say("Barkeep", "What should I serve you tonight, Detective?");
+
+                                        break;
+
+                                    case 2:
+
+                                        that.say("Barkeep", "Is everything in order, Detective?");
+
+                                        break;
+
+                                }
+
+                            }
+
+                        },
+                        "order drink": {
+
+                            text: "You decide to order a drink.",
+
+                            exec: (that) => {
+
+                                that.player.say("Rum with Coke.");
+
+                                that.say("Barkeep", "Rum with Coke?");
+
+                                that.player.say("And vodka.");
+
+                                that.say("Barkeep", "Rum with Coke and vodka.");
+
+                                that.player.say("And gin.");
+
+                                that.say("Barkeep", "Rum with Coke, vodka and gin.");
+
+                                that.player.say("And whisky.");
+
+                                that.say("Barkeep", "Rum with Coke, vodka, gin and whisky.");
+
+                                that.player.say("Double.");
+
+                                that.room.change("theGirl");
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                theGirl: {
+
+                    name: SUD.color("pink", "The Girl"),
+
+                    description: "You pull out a pack of cigarettes. You light one up and look around for your snitch Pachuco, but can't see him anywhere. A Cuban girl comes up to you instead.",
+
+                    exits: {},
+
+                    actions: {
+
+                        "talk girl": {
+
+                            text: "You talk to the girl.",
+
+                            exec: (that) => {
+
+                                that.say("Girl", "Hi, sugar.");
+
+                                that.player.say("Hi, sweet girl.");
+
+                                that.say("Girl", "My name's Leticia.");
+
+                                that.player.say("I don't like it. I'll call you Marzena.");
+
+                                that.say("Leticia", "What?");
+
+                                that.player.say("Marzena.");
+
+                                that.say("Marzena", "Okay.");
+
+                                that.print("You order a drink for her. Rum with Coke, vodka, gin and whisky. Double. You both drink.");
+
+                                that.say("Marzena", "You like having fun?");
+
+                                that.player.say("I love having fun. I spend all my free time in my bedthat.room solving puzzles.");
+
+                                that.say("Marzena", "You're funny.");
+
+                                that.player.say("I've heard that before.");
+
+                                that.say("Marzena", "You have beautiful eyes.");
+
+                                that.player.say("I've heard that before as well.");
+
+                                that.say("Marzena", "Your hair smells amazing.");
+
+                                that.player.say("It's because I wash it.");
+
+                                that.say("Marzena", "Let's go to the toilet.");
+
+                                that.player.say("Okay.");
+
+                                that.room.change("theToilet");
+
+                            }
+
+                        },
+
+                        "talk": {
+
+                            text: "You talk to the girl.",
+
+                            exec: (that) => {
+
+                                that.say("Girl", "Hi, sugar.");
+
+                                that.player.say("Hi, sweet girl.");
+
+                                that.say("Girl", "My name's Leticia.");
+
+                                that.player.say("I don't like it. I'll call you Marzena.");
+
+                                that.say("Leticia", "What?");
+
+                                that.player.say("Marzena.");
+
+                                that.say("Marzena", "Okay.");
+
+                                that.print("You order a drink for her. Rum with Coke, vodka, gin and whisky. Double. You both drink.");
+
+                                that.say("Marzena", "You like having fun?");
+
+                                that.player.say("I love having fun. I spend all my free time in my bedthat.room solving puzzles.");
+
+                                that.say("Marzena", "You're funny.");
+
+                                that.player.say("I've heard that before.");
+
+                                that.say("Marzena", "You have beautiful eyes.");
+
+                                that.player.say("I've heard that before as well.");
+
+                                that.say("Marzena", "Your hair smells amazing.");
+
+                                that.player.say("It's because I wash it.");
+
+                                that.say("Marzena", "Let's go to the toilet.");
+
+                                that.player.say("Okay.");
+
+                                that.room.change("theToilet");
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                theToilet: {
+
+                    name: SUD.color("pink", "The Toilet"),
+
+                    description: "You follow Marzena to the toilet. You go into a stall and lock the door. You start kissing. You feel like pulling out your Glock and emptying the whole magazine, but Marzena pushes you away.",
+
+                    exits: {},
+
+                    actions: {
+
+                        "ask": {
+
+                            text: "You ask her what's wrong.",
+
+                            exec: (that) => {
+
+                                that.say("Marzena", "I have to tell you something about myself.");
+
+                                that.player.say("No, don't do this.");
+
+                                that.say("Marzena", "I have to, Detective. You know, I'm not really Leticia.");
+
+                                that.player.say("Oh, no.");
+
+                                that.say("Marzena", "I'm not even a woman.");
+
+                                that.player.say("What?");
+
+                                that.say("Gorilla", "I'm a gorilla.");
+
+                                that.print("Marzena takes off her blouse. It was a costume. A woman costume. Inside was a gorilla. It undresses and walks on its hands to the corner and sits at a drum kit.");
+
+                                that.say("Gorilla", "Listen to this.");
+
+                                that.print("The gorilla plays the drum intro to \"In The Air Tonight\" by Phil Collins. God, how beautifully it plays it. You listen. You can hear it. You can hear it in the air tonight.");
+
+                                that.delay.add(() => {
+                                    that.input.element.disabled = true;
+                                    that.input.element.value = "THE END";
+                                });
+
+                            }
+
+                        },
+
+                        "talk": {
+
+                            text: "You ask her what's wrong.",
+
+                            exec: (that) => {
+
+                                that.say("Marzena", "I have to tell you something about myself.");
+
+                                that.player.say("No, don't do this.");
+
+                                that.say("Marzena", "I have to, Detective. You know, I'm not really Leticia.");
+
+                                that.player.say("Oh, no.");
+
+                                that.say("Marzena", "I'm not even a woman.");
+
+                                that.player.say("What?");
+
+                                that.say("Gorilla", "I'm a gorilla.");
+
+                                that.print("Marzena takes off her blouse. It was a costume. A woman costume. Inside was a gorilla. It undresses and walks on its hands to the corner and sits at a drum kit.");
+
+                                that.say("Gorilla", "Listen to this.");
+
+                                that.print("The gorilla plays the drum intro to \"In The Air Tonight\" by Phil Collins. God, how beautifully it plays it. You listen. You can hear it. You can hear it in the air tonight.");
+
+                                that.delay.add(() => {
+                                    that.input.element.disabled = true;
+                                    that.input.element.value = "THE END";
+                                });
+
+                            }
+
+                        }
+
+                    }
+                }
+            }
+        };
+
+        let game = new SUD(config);
+
+    </script>
+</body>
+
+</html>
