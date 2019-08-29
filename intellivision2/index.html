@@ -69,9 +69,13 @@
                     tint(255, 255);
                 }
 
-                if(munchkin.immortal%7<4) drawTile("munchkin" + (
-                    frameCount%4<2  ? "0" : munchkin.dir
-                ), munchkin.x, munchkin.y);
+                if(munchkin.immortal%7<4) {
+                    if(munchkin.dead) tint(255, 50);
+                    drawTile("munchkin" + (
+                        frameCount%4<2  ? "0" : munchkin.dir
+                    ), munchkin.x, munchkin.y);
+                    tint(255, 255);
+                }
 
                 if(pacman.immortal) pacman.immortal--;
                 if(munchkin.immortal) munchkin.immortal--;
@@ -119,6 +123,15 @@
 
             function addTile(type, x, y, meta) {
                 tiles[tiles.length] = [type, x*8, y*8, meta];
+            }
+
+            function removeTile(x, y) {
+                for(let i in tiles) {
+                    if(tiles[i][1] == x*8 && tiles[i][2] == y*8) {
+                        tiles.splice(i, 1);
+                        return;
+                    }
+                }
             }
 
             function drawTile(type, x, y) {
