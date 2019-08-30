@@ -213,9 +213,9 @@
                             
                             if(--window[player].hp === 0) {
                                 window[player].dead = true;
+                            } else {
+                                window[player].immortal = 100;
                             }
-
-                            window[player].immortal = 100;
                         }
                         return;
                     }
@@ -266,14 +266,14 @@
                 switch(keyCode) {
                     case "R".charCodeAt(0): restart(); break;
                     case "F".charCodeAt(0): // pacman bomb
-                        if(pacman.bombs) {
+                        if(pacman.bombs && !pacman.dead) {
                             addTile("bombPacman1", Math.round(pacman.x/8), Math.round(pacman.y/8), pacman.fuse);
                             pacman.bombs--;
                         }
                         break;
 
                     case "P".charCodeAt(0): // munchkin bomb
-                        if(munchkin.bombs) {
+                        if(munchkin.bombs && !munchkin.dead) {
                             addTile("bombMunchkin1", Math.round(munchkin.x/8), Math.round(munchkin.y/8), munchkin.fuse);
                             munchkin.bombs--;
                         }
