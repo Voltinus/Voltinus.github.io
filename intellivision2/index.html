@@ -179,7 +179,11 @@
                     6: [6, 4],
                     7: [7, 4],
                     8: [0, 5],
-                    9: [1, 5]
+                    9: [1, 5],
+
+                    upgradeHP:    [2, 3],
+                    upgradeBomb:  [3, 3],
+                    upgradePower: [4, 3]
                 }
 
                 let t = types[type];
@@ -238,14 +242,29 @@
             function restart() {
                 tiles = [];
 
-                for(let i=0; i<12; i++) {
+                for(let i=0; i<12; i++) { // side walls
                     addTile("wall", 19, i);
                     addTile("wall", 5,  i);
                 }
-                for(let i=0; i<17; i++) {
+                for(let i=0; i<17; i++) { // top and bottom
                     addTile("wall", i+6, 0);
                     addTile("wall", i+6, 11);
                 }
+
+                let insideWalls = [ // [6, 1] - [18, 19]
+                    [ 7, 2], [ 7, 3], [ 8, 2], [16, 2], [17, 2], [17, 3],
+                    [ 7, 8], [ 7, 9], [ 8, 9], [16, 9], [17, 8], [17, 9],
+                    [ 7, 5], [ 7, 6], [17, 5], [17, 6],
+                    [12, 1], [12, 2], [12, 9], [12,10],
+                    [12, 5], [12, 6],
+                    [10, 2], [10, 3], [10, 4], [ 9, 4],
+                    [14, 2], [14, 3], [14, 4], [15, 4],
+                    [10, 7], [10, 8], [10, 9], [ 9, 7],
+                    [14, 7], [14, 8], [14, 9], [15, 7],
+                    
+                ];
+
+                for(let pos of insideWalls) addTile("wall", pos[0], pos[1]);
 
                 pacman  = {
                     x: 48, y: 8,
