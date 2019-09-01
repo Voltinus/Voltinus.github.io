@@ -29,6 +29,58 @@
             let canvas, sprites, tiles = [];
             var pacman, munchkin;
 
+
+            let types = {
+                void:      [-1, -1],
+                wall:      [ 0,  3],
+                obstacle:  [ 1,  3],
+
+                pacman0:   [ 0,  0],
+                pacmanE:   [ 1,  0],
+                pacmanE2:  [ 1,  1],
+                pacmanS:   [ 2,  0],
+                pacmanS2:  [ 2,  1],
+                pacmanW:   [ 3,  0],
+                pacmanW2:  [ 3,  1],
+                pacmanN:   [ 4,  0],
+                pacmanN2:  [ 4,  1],
+
+                munchkin0: [ 0,  2],
+                munchkinE: [ 1,  2],
+                munchkinS: [ 2,  2],
+                munchkinW: [ 3,  2],
+                munchkinN: [ 4,  2],
+
+                bombPacman1: [5, 0],
+                bombPacman2: [6, 0],
+                bombPacman3: [7, 0],
+                explosionPacman0: [5, 1],
+                explosionPacmanH: [6, 1],
+                explosionPacmanV: [7, 1],
+
+                bombMunchkin1: [5, 2],
+                bombMunchkin2: [6, 2],
+                bombMunchkin3: [7, 2],
+                explosionMunchkin0: [5, 3],
+                explosionMunchkinH: [6, 3],
+                explosionMunchkinV: [7, 3],
+
+                0: [0, 4],
+                1: [1, 4],
+                2: [2, 4],
+                3: [3, 4],
+                4: [4, 4],
+                5: [5, 4],
+                6: [6, 4],
+                7: [7, 4],
+                8: [0, 5],
+                9: [1, 5],
+
+                upgradeHP:    [2, 3],
+                upgradeBomb:  [3, 3],
+                upgradePower: [4, 3]
+            }
+
             function preload() {
                 sprites = loadImage("sprites.png");
             }
@@ -135,57 +187,6 @@
             }
 
             function drawTile(type, x, y) {
-                let types = {
-                    void:      [-1, -1],
-                    wall:      [ 0,  3],
-                    obstacle:  [ 1,  3],
-
-                    pacman0:   [ 0,  0],
-                    pacmanE:   [ 1,  0],
-                    pacmanE2:  [ 1,  1],
-                    pacmanS:   [ 2,  0],
-                    pacmanS2:  [ 2,  1],
-                    pacmanW:   [ 3,  0],
-                    pacmanW2:  [ 3,  1],
-                    pacmanN:   [ 4,  0],
-                    pacmanN2:  [ 4,  1],
-
-                    munchkin0: [ 0,  2],
-                    munchkinE: [ 1,  2],
-                    munchkinS: [ 2,  2],
-                    munchkinW: [ 3,  2],
-                    munchkinN: [ 4,  2],
-
-                    bombPacman1: [5, 0],
-                    bombPacman2: [6, 0],
-                    bombPacman3: [7, 0],
-                    explosionPacman0: [5, 1],
-                    explosionPacmanH: [6, 1],
-                    explosionPacmanV: [7, 1],
-
-                    bombMunchkin1: [5, 2],
-                    bombMunchkin2: [6, 2],
-                    bombMunchkin3: [7, 2],
-                    explosionMunchkin0: [5, 3],
-                    explosionMunchkinH: [6, 3],
-                    explosionMunchkinV: [7, 3],
-
-                    0: [0, 4],
-                    1: [1, 4],
-                    2: [2, 4],
-                    3: [3, 4],
-                    4: [4, 4],
-                    5: [5, 4],
-                    6: [6, 4],
-                    7: [7, 4],
-                    8: [0, 5],
-                    9: [1, 5],
-
-                    upgradeHP:    [2, 3],
-                    upgradeBomb:  [3, 3],
-                    upgradePower: [4, 3]
-                }
-
                 let t = types[type];
                 if(t === undefined) {
                     t = [-1, -1];
