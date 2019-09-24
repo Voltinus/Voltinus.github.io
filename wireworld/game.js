@@ -80,19 +80,6 @@ class Circuit {
 
                 break;
             }
-
-            case "and": {
-                let {x, y} = properties;
-                this.add("blueprint", {x: x-2, y: y-2, blueprint: [
-                    [ , 3, 3,  ,  ],
-                    [3,  ,  , 3,  ],
-                    [ ,  , 3, 3, 3],
-                    [3,  ,  , 3,  ],
-                    [ , 3, 3,  ,  ]
-                ]});
-
-                break;
-            }
         }
 
         this.draw();
@@ -190,9 +177,9 @@ function setup() {
 
     circuit = new Circuit();
 
-    circuit.add("and", {x: 11, y: 5 });
-    circuit.add("and", {x: 11, y: 11});
-    circuit.add("and", {x: 16, y: 8});
+    circuit.add("or", {x: 11, y: 5 });
+    circuit.add("or", {x: 11, y: 11});
+    circuit.add("or", {x: 16, y: 8});
 
     circuit.add("blueprint", {x: 14, y: 5, blueprint: [
         [3], [0], [0], [0], [0], [0], [3]
