@@ -268,14 +268,14 @@
                 for(let pos of insideWalls) addTile("wall", pos[0], pos[1]);
 
                 // obstacles
-                for(let i=6; i<19; i++) {
+                /*for(let i=6; i<19; i++) {
                     for(let j=1; j<11; j++) {
                         if((i<8 && j<3) || (i>16 && j>8)) continue;
                         if(getTile(i, j) === undefined) {
                             if(Math.random() < 0.7) addTile("obstacle", i, j);
                         }
                     }
-                }
+                }*/
 
                 pacman  = {
                     x: 48, y: 8,
