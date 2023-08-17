@@ -1,10 +1,7 @@
 source "https://rubygems.org"
 
 gem "jekyll"
-
-# This is the default theme for new Jekyll sites. You may change this to anything you like.
-gem "minima", git: "https://github.com/jekyll/minima"
-
+gem "minima"
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
 # and associated library.
